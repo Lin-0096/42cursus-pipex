@@ -3,29 +3,45 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
+/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 11:33:35 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/02 22:54:38 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/03 15:19:37 by linliu           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+
 int main(int argc, char **argv)
 {
+    int     pipefd[2];
+    int     infile;
+    int     outfile;
+    pid_t   pid;
+    
     if(argc != 5)
     {
         printf("Usage: ./pipex infile cmd1 cmd2 outfile\n");
         return(1);
     }
+    infile = open(argv[1], O_RDONLY); //
+    outfile = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);//
 
-    printf("infiel: %s\n", argv[1]);
-    printf("cmd1: %s\n", argv[2]);
-    printf("cmd2: %s\n", argv[3]);
-    printf("outfiel: %s\n", argv[4]);
-
+    if(pipe(pipefd) == -1)
+    {
+        perror("pipe");
+	    exit(1);
+    }
+    pid1 = child_process();
+    pid2 = child_process();
     return(0);
 }
 
+//-------------------------------------------------------
+//get_cmd_path and check if it can run
 char *get_cmd_path(char *cmd, char **envp)
 {
     char **paths;
@@ -69,19 +85,48 @@ char *get_cmd_path(char *cmd, char **envp)
     free(paths);
     return (NULL);
 }
+
+//-----------------------------------------------
 // creat pipe and fork
 int pipefd[2];
 if (pipe(pipefd) == -1)
 {
 
 }
-pid_t pid = fork();
-if (pid == -1)
+int infile = open(argv[1], O_RDONLY);
+int outfile = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);
+// 0 → just tells it's octal
+// 6 → owner can read (4) + write (2)
+// 4 → group can read
+// 4 → others can read
+
+pid_t pid1 = fork();
+if (pid1 == 0)
 {
-
+    dup2(infile, STDIN_FILENO);
+    dup2(pipefd[1], STDOUT_FILENO);
+    //close
+    //execve
 }
-dup2(infile, STDIN_FILENO);
-close(infile);
 
-dup2(pipefd[1], STDOUT_FILENO);
-close(pipefd[1]);
+pid_t pid2 = fork();
+if (pid2 == 0)
+{
+    dup2(pipefd[0], STDIN_FILENO);
+    dup2(outfile, STDOUT_FILENO);
+    //close
+    execve(cmd_path, cmd_args, envp)
+}
+
+waitpid(pid1, NULL, 0);
+waitpid(pid2, NULL, 0);
+
+//---------------------------------------
+//
+char **parse_cmd(char *cmd)
+{
+    char **cmd_args = ft_split(cmd, ' ');
+    if(!cmd_args)
+        return (NULL);
+    char *cmd_path = get_cmd_path(cmd_args[0], envp);
+}
