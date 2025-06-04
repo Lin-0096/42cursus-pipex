@@ -6,11 +6,11 @@
 /*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 11:33:35 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/03 15:19:37 by linliu           ###   ########.fr       */
+/*   Updated: 2025/06/04 15:45:11 by linliu           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <unistd.h>
+#include <unistd.h> //execve, dup2
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <stdlib.h>
@@ -20,13 +20,11 @@ int main(int argc, char **argv)
     int     pipefd[2];
     int     infile;
     int     outfile;
-    pid_t   pid;
+    pid_t   pid1;
+    pid_t   pid2;
     
     if(argc != 5)
-    {
-        printf("Usage: ./pipex infile cmd1 cmd2 outfile\n");
         return(1);
-    }
     infile = open(argv[1], O_RDONLY); //
     outfile = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);//
 
@@ -35,8 +33,8 @@ int main(int argc, char **argv)
         perror("pipe");
 	    exit(1);
     }
-    pid1 = child_process();
-    pid2 = child_process();
+    child1_process();
+    child2_process();
     return(0);
 }
 
@@ -86,6 +84,7 @@ char *get_cmd_path(char *cmd, char **envp)
     return (NULL);
 }
 
+
 //-----------------------------------------------
 // creat pipe and fork
 int pipefd[2];
@@ -105,7 +104,7 @@ if (pid1 == 0)
 {
     dup2(infile, STDIN_FILENO);
     dup2(pipefd[1], STDOUT_FILENO);
-    //close
+    close(pipefd[1]);
     //execve
 }
 
@@ -114,8 +113,8 @@ if (pid2 == 0)
 {
     dup2(pipefd[0], STDIN_FILENO);
     dup2(outfile, STDOUT_FILENO);
-    //close
-    execve(cmd_path, cmd_args, envp)
+    close(pipefd[0]);
+    execve(cmd_path);
 }
 
 waitpid(pid1, NULL, 0);
@@ -123,10 +122,32 @@ waitpid(pid2, NULL, 0);
 
 //---------------------------------------
 //
-char **parse_cmd(char *cmd)
+char **parse_cmd(char *cmd, char **envp)
 {
     char **cmd_args = ft_split(cmd, ' ');
     if(!cmd_args)
         return (NULL);
     char *cmd_path = get_cmd_path(cmd_args[0], envp);
+}
+
+void    child_process(char *argv_i, int pipe_fd, int pid_num)
+{
+    int infile;
+    int pipefd[2];
+    pid_t pid[2];
+    
+    if(pipe(pipefd) < 0)
+    {
+        
+    }
+    pid[pid_num] = fok();
+    if(pid[pid_num] < 0)
+    {
+        
+    }
+    
+    infile = open(argv_i, O_RDONLY);
+    dup2(infile, STDIN_FILENO);
+    dup2(pipefd[pipe_fd], STDOUT_FILENO);
+    
 }
