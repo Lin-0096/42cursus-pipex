@@ -3,38 +3,37 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
+/*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 11:33:35 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/04 15:45:11 by linliu           ###   ########.fr       */
+/*   Updated: 2025/06/04 18:27:53 by lin              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h> //execve, dup2
-#include <fcntl.h>
-#include <sys/wait.h>
+#include <fcntl.h> //open things
 #include <stdlib.h>
+#include <sys/wait.h>
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **envp)
 {
-    int     pipefd[2];
     int     infile;
     int     outfile;
-    pid_t   pid1;
-    pid_t   pid2;
+    pid_t   pid[2];
     
     if(argc != 5)
         return(1);
-    infile = open(argv[1], O_RDONLY); //
-    outfile = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);//
-
-    if(pipe(pipefd) == -1)
+    infile = open(argv[1], O_RDONLY);
+    outfile = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);
+    if(infile == -1 || outfile == -1)
     {
-        perror("pipe");
-	    exit(1);
+        
     }
-    child1_process();
-    child2_process();
+    
+    pid[0] = child1_process(argv, infile, 1, envp);
+    pid[1] = child2_process(argv, outfile, 0, envp);
+    waitpid(pid[0], NULL, 0);
+    waitpid(pid[1], NULL, 0); 
     return(0);
 }
 
@@ -84,70 +83,41 @@ char *get_cmd_path(char *cmd, char **envp)
     return (NULL);
 }
 
-
-//-----------------------------------------------
-// creat pipe and fork
-int pipefd[2];
-if (pipe(pipefd) == -1)
+char **split_cmd(char *cmd, char **envp)
 {
-
-}
-int infile = open(argv[1], O_RDONLY);
-int outfile = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);
-// 0 → just tells it's octal
-// 6 → owner can read (4) + write (2)
-// 4 → group can read
-// 4 → others can read
-
-pid_t pid1 = fork();
-if (pid1 == 0)
-{
-    dup2(infile, STDIN_FILENO);
-    dup2(pipefd[1], STDOUT_FILENO);
-    close(pipefd[1]);
-    //execve
-}
-
-pid_t pid2 = fork();
-if (pid2 == 0)
-{
-    dup2(pipefd[0], STDIN_FILENO);
-    dup2(outfile, STDOUT_FILENO);
-    close(pipefd[0]);
-    execve(cmd_path);
-}
-
-waitpid(pid1, NULL, 0);
-waitpid(pid2, NULL, 0);
-
-//---------------------------------------
-//
-char **parse_cmd(char *cmd, char **envp)
-{
+    if(!cmd)
+    {
+        
+    }
     char **cmd_args = ft_split(cmd, ' ');
     if(!cmd_args)
         return (NULL);
-    char *cmd_path = get_cmd_path(cmd_args[0], envp);
 }
 
-void    child_process(char *argv_i, int pipe_fd, int pid_num)
+int    child1_process(char **argv, int file_fd, int pipe_nub, char **envp)
 {
-    int infile;
     int pipefd[2];
-    pid_t pid[2];
-    
+    pid_t pid;
+    char **cmd_args = split_cmd(argv[2], envp);
+    char *cmd_path = get_cmd_path(cmd_args[0], envp);
+
     if(pipe(pipefd) < 0)
     {
         
     }
-    pid[pid_num] = fok();
-    if(pid[pid_num] < 0)
+    pid = fok();
+    if(pid < 0)
     {
+       
         
     }
-    
-    infile = open(argv_i, O_RDONLY);
-    dup2(infile, STDIN_FILENO);
-    dup2(pipefd[pipe_fd], STDOUT_FILENO);
-    
+    if (pid == 0)
+    {
+        dup2(file_fd, STDIN_FILENO);
+        dup2(pipefd[pipe_nub], STDOUT_FILENO);
+        close(file_fd);
+        close(pipefd[pipe_nub]);
+        execve(cmd_path, cmd_args, envp);
+    }
+    return (pid);
 }
