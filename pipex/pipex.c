@@ -6,14 +6,15 @@
 /*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 11:33:35 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/04 22:58:30 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/05 13:39:28 by lin              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <unistd.h> //execve, dup2
-#include <fcntl.h> //open things
-#include <stdlib.h>
-#include <sys/wait.h>
+#include "pipex.h"
+
+//create pipe before the fork, check them every time call them
+//waitpid to avoid child-process becoming zombie-process
+//exit(EXIT_FAILURE) if there's no reasonable way to continue,it is more readable and portable than exit(1)
 
 int main(int argc, char **argv, char **envp)
 {
@@ -22,14 +23,11 @@ int main(int argc, char **argv, char **envp)
     
     if(argc != 5)
         return(1);
-    if(pipefd < 0)
-    {
-        
-    }
-    outfile = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);
+    if(pipe(pipefd) < 0)
+        error_exit("pipe");
     
     pid[0] = child1_process(argv, pipefd, envp);
-    pid[1] = child2_process(argv, outfile, 0, envp);
+    pid[1] = child2_process(argv, pipefd, envp);
     waitpid(pid[0], NULL, 0);
     waitpid(pid[1], NULL, 0); 
     return(0);
@@ -39,9 +37,18 @@ int    child1_process(char **argv, int *pipefd, char **envp)
 {
     pid_t pid;
     int infile;
-    char **cmd_args = split_cmd(argv[2], envp);
-    char *cmd_path = get_cmd_path(cmd_args[0], envp);
+    char **cmd_args;
+    char *cmd_path;
 
+    cmd_args =split_cmd(argv[2], envp);
+    if (!cmd_args)
+        error_exit("split_cmd failed");
+    cmd_path = get_cmd_path(cmd_args[0],envp);
+    if(!cmd_path)
+    {
+        free_arr(cmd_args);
+        error_exit("command not found");
+    }
     infile = open(argv[1], O_RDONLY);
     if (infile < 0 )
         error_exit("open file");
@@ -61,66 +68,33 @@ int    child1_process(char **argv, int *pipefd, char **envp)
     return (pid);
 }
 
-void    error_exit(const char *str)
+int    child2_process(char **argv, int *pipefd, char **envp)
 {
-    perror(str);
-    exit(1);
-}
-//-------------------------------------------------------
-//get_cmd_path and check if it can run
-char *get_cmd_path(char *cmd, char **envp)
-{
-    char **paths;
-    char *joinslash;
-    int i;
-    int j;
-    char *com_path;
-    char *path_value;
+    pid_t pid;
+    int outfile;
+    char **cmd_args = split_cmd(argv[3], envp);
+    char *cmd_path = get_cmd_path(cmd_args[0], envp);
 
-    while(*envp) //get path
+    outfile = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);
+    if (outfile < 0 )
+        error_exit("open file");
+    pid = fork();
+    if(pid < 0)
+        error_exit("fork");
+    if (pid == 0)
     {
-        if (ft_strncmp(*envp, "PATH=", 5) == 0)
-            path_value = *envp + 5;
-        *envp++;
+        dup2(pipefd[0], STDIN_FILENO);
+        dup2(outfile, STDOUT_FILENO);
+        close(outfile);
+        close(pipefd[0]);
+        close(pipefd[1]);
+        execve(cmd_path, cmd_args, envp);
+        error_exit("exeve");
     }
-    if (!*envp)
-        return (NULL);
-    paths = ft_split(path_value, ':'); //split directory
-    if(!paths)
-        return (NULL);
-    i = 0;
-    while(paths[i]) //join cmd to different dir to check if the cmd is there and can run
-    {
-        joinslash = ft_strjoin(paths[i], "/"); //?do i have to check here
-        com_path = ft_strjoin(joinslash, cmd);
-        free(joinslash); //!!
-        if(access(com_path, X_OK) == 0) //if it can be executed then free everything 
-        {
-            j = 0;
-            while(paths[j])
-                free(paths[j++]);
-            free(paths); //!!
-            return (com_path);
-        }
-        free(com_path);
-        i++;
-    }
-    i = 0;
-    while(paths[i]) //clean up everything then
-        free(paths[i++]);
-    free(paths);
-    return (NULL);
+    return (pid);
 }
 
-char **split_cmd(char *cmd, char **envp)
-{
-    if(!cmd)
-    {
-        
-    }
-    char **cmd_args = ft_split(cmd, ' ');
-    if(!cmd_args)
-        return (NULL);
-}
+
+
 
 
