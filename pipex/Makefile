@@ -1,15 +1,17 @@
-NAME := pipex
-
 CC = cc
-
 CFLAGS = -Wall -Wextra -Werror
 
-SRCS := 
+NAME := pipex
+SRCS := main.c get_cmd_path.c utils.c
+OBJ := $(SRCS:%.c=%.o)
 
-OBJECTS = $(SRCS:%.c=%.o)
-
-RM = rm -f
+RM := rm -f
 
 all: $(NAME)
 
-$(NAME): $(OBJECT)
+%.o: %.c
+		$(CC) $(CFLAGS) -c $^ -o $@
+
+$(NAME): $(OBJ)
+
+		 
