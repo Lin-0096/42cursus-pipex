@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   pipex.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/06 11:00:26 by linliu            #+#    #+#             */
+/*   Updated: 2025/06/06 15:37:23 by linliu           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef PIPEX_H
 # define PIPEX_H
 
@@ -6,6 +18,7 @@
 # include <stdlib.h> //exit（）malloc free
 # include <sys/wait.h> // waitpid
 # include <stdio.h> //perror
+# include "./libft/libft.h"
 
 typedef struct  s_px
 {
@@ -14,6 +27,8 @@ typedef struct  s_px
 	int		filefd[2];   // filefd[0] infile,filefd[1] outfile
 	int		pipefd[2];   // pipefd[0] read,pipefd[1] write
 }   t_px;
+
+//int main(int argc, char **argv, char **envp);
 
 //get_cmd_path and check if it can run
 char    *get_cmd_path(char *cmd_arg, t_px *px);
