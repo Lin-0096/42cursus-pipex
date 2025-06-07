@@ -6,7 +6,7 @@
 /*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 11:33:35 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/07 13:28:18 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/07 18:52:26 by lin              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ static void run_child(t_px *px, char **cmd_args, char *cmd_path, int cmd_index)
     execve(cmd_path, cmd_args, px->envp);
     free_arr(cmd_args);
     free(cmd_path);
-    error_exit("execve", 126);
+    error_exit("pipex: execve");
 }
 
 static int  child_process(t_px *px, int cmd_index)
@@ -49,18 +49,25 @@ static int  child_process(t_px *px, int cmd_index)
 
     cmd_args = split_cmd(px->argv[cmd_index]);
     if(!cmd_args)
-        error_exit("split_cmd failed", 1);//don't need to free， cause i free everything in ft_split if fails
+    {
+        close_everything(px, 0, 0);
+        ft_putstr_fd("Pipex: split_cmd failed\n", STDERR_FILENO); //don't need to free， cause i free everything in ft_split if fail
+        exit(EXIT_FAILURE);
+    }
     cmd_path = get_cmd_path(cmd_args[0], px);
     if (!cmd_path)
     {
-        free_arr(cmd_args);
-        error_exit("command not found", 127);
+        ft_putstr_fd("Pipex: ", STDERR_FILENO);
+        ft_putstr_fd(cmd_args[0], STDERR_FILENO);
+        ft_putstr_fd(": command not found\n", STDERR_FILENO);
+        close_everything(px, cmd_args, 0);
+        exit(127);
     }
     pid = fork();
     if(pid < 0) //pid=0 child process, pid>0 parent process, pid<0 failed
      {
         close_everything(px, cmd_args, cmd_path);
-        error_exit("fork failed", 1);
+        error_exit("Pipex: fork failed");
      }
      if (pid == 0)
         run_child(px, cmd_args, cmd_path, cmd_index);
@@ -74,33 +81,32 @@ int main(int argc, char **argv, char **envp)
     int     status;
     
     if(argc != 5)
-        error_exit("Usage: ./pipex infile cmd1 cmd2 outfile", 1);
+    {
+        ft_putstr_fd("Usage: ./pipex infile cmd1 cmd2 outfile", STDIN_FILENO);
+        exit(EXIT_FAILURE);
+    }
     px.argv = argv;
     px.envp = envp;
     px.filefd[0] = open(argv[1], O_RDONLY);
     if (px.filefd[0] < 0 )
-        error_exit("open file", 1);
+        error_exit("Pipex: open file");
     px.filefd[1] = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);
     if (px.filefd[1] < 0 )
     {
         close(px.filefd[0]);
-        error_exit("open file", 1);
+        error_exit("Pipex: open file");
     }
-    if(pipe(px.pipefd) < 0)
-        error_exit("pipe failed", 1);
+    if(pipe(px.pipefd) < 0) // ==0 success, -1 fail
+    {
+        close_everything(&px, 0, 0);
+        error_exit("Pipex: pipe failed");
+    }
     pid[0] = child_process(&px, 2);
     pid[1] = child_process(&px, 3);
-    close(px.pipefd[0]); //close the ends in the parent, otherwise lead to file descriptor leaks and unexpected behavior
-    close(px.pipefd[1]);
+    close_everything(&px, 0, 0);//close the ends in the parent, otherwise lead to file descriptor leaks and unexpected behavior
     waitpid(pid[0], &status, 0);
     waitpid(pid[1], &status, 0); 
     if (WIFEXITED(status))
 		return (WEXITSTATUS(status));//modify
-	return (0);
+	return (EXIT_FAILURE);
 }
-
-
-
-
-
-

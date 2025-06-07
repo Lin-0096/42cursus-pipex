@@ -6,7 +6,7 @@
 /*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 11:00:26 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/07 12:46:31 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/07 18:19:46 by lin              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <stdlib.h> //exit（）malloc free
 # include <sys/wait.h> // waitpid
 # include <stdio.h> //perror
+#include <sys/errno.h> //errno
 # include "./libft/libft.h"
 
 typedef struct  s_px
@@ -36,7 +37,7 @@ typedef struct  s_px
 char    *get_cmd_path(char *cmd_arg, t_px *px);
 char    **split_cmd(char *whole_cmd);
 
-void    error_exit(const char *str, int error_code);
+void    error_exit(const char *str);
 void    free_arr(char **str);
 void    close_everything(t_px *px, char **cmd_args, char *cmd_path);
 

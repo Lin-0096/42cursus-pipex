@@ -27,7 +27,7 @@ RM = rm -f
 all: $(NAME)
 
 $(NAME): $(OBJECTS)
-	ar rcs $(NAME) $(OBJECTS)
+	@ar rcs $(NAME) $(OBJECTS)
 
 bonus: $(BONUS)
 
@@ -36,13 +36,13 @@ $(BONUS): $(NAME) $(BONUS_OBJECTS)
 	touch $(BONUS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJECTS) $(BONUS_OBJECTS) $(BONUS)
+	@$(RM) $(OBJECTS) $(BONUS_OBJECTS) $(BONUS)
 
 fclean: clean
-	$(RM) $(NAME)
+	@$(RM) $(NAME)
 
 re: fclean all
 

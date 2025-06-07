@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   path.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
+/*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 10:59:45 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/06 17:20:09 by linliu           ###   ########.fr       */
+/*   Updated: 2025/06/07 17:08:52 by lin              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ static char    *match_cmd_in_path(char **paths, char *cmd_arg)
         free(joinslash); //!!free it before return, because after return it can't free anymore
         if(!com_path)
             return (NULL);
-        if(access(com_path, X_OK) == 0) //if it can be executed then free everything
+        if(access(com_path, X_OK) == 0) //0 means ok, if it can be executed then free everything
             return (com_path);
         free(com_path);
         i++;
