@@ -6,7 +6,7 @@
 /*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 11:33:35 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/07 13:19:50 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/07 13:28:18 by lin              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv, char **envp)
     int     status;
     
     if(argc != 5)
-        error_exit("Usage: ./pipex infile cmd1 cmd2 outfile");
+        error_exit("Usage: ./pipex infile cmd1 cmd2 outfile", 1);
     px.argv = argv;
     px.envp = envp;
     px.filefd[0] = open(argv[1], O_RDONLY);
