@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
+/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 11:33:35 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/07 18:52:26 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/07 20:19:08 by linliu           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ static int  child_process(t_px *px, int cmd_index)
      }
      if (pid == 0)
         run_child(px, cmd_args, cmd_path, cmd_index);
+    close_everything(&px, cmd_args, cmd_path);
     return (pid);
 }
 
@@ -88,7 +89,9 @@ int main(int argc, char **argv, char **envp)
     px.argv = argv;
     px.envp = envp;
     px.filefd[0] = open(argv[1], O_RDONLY);
-    if (px.filefd[0] < 0 )
+    
+    //move this part to child (open fail,one success?, one fail?)-------------
+    if (px.filefd[0] < 0 )//???
         error_exit("Pipex: open file");
     px.filefd[1] = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);
     if (px.filefd[1] < 0 )
@@ -96,17 +99,23 @@ int main(int argc, char **argv, char **envp)
         close(px.filefd[0]);
         error_exit("Pipex: open file");
     }
+    //-----------------------------------------------
+    
     if(pipe(px.pipefd) < 0) // ==0 success, -1 fail
     {
-        close_everything(&px, 0, 0);
+        //close_everything(&px, 0, 0);
+        close(px.filefd[0]);
+        close(px.filefd[1]);
         error_exit("Pipex: pipe failed");
     }
     pid[0] = child_process(&px, 2);
     pid[1] = child_process(&px, 3);
-    close_everything(&px, 0, 0);//close the ends in the parent, otherwise lead to file descriptor leaks and unexpected behavior
-    waitpid(pid[0], &status, 0);
+    
+    //---------------------------------------
+    waitpid(pid[0], &status, 0);//??
     waitpid(pid[1], &status, 0); 
     if (WIFEXITED(status))
 		return (WEXITSTATUS(status));//modify
 	return (EXIT_FAILURE);
+    //----------------------------------------
 }

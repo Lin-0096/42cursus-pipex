@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
+/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 11:00:26 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/07 18:19:46 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/07 20:05:09 by linliu           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,6 @@ typedef struct  s_px
 	char	**envp;
 	int		filefd[2];   // filefd[0] infile,filefd[1] outfile
 	int		pipefd[2];   // pipefd[0] read,pipefd[1] write
-	// int		redir_stdin;
-	// int		redir_stdout;
 }   t_px;
 
 //int main(int argc, char **argv, char **envp);
