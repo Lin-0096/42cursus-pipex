@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
+/*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 11:00:26 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/06 15:37:23 by linliu           ###   ########.fr       */
+/*   Updated: 2025/06/07 12:46:31 by lin              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@ typedef struct  s_px
 	char	**envp;
 	int		filefd[2];   // filefd[0] infile,filefd[1] outfile
 	int		pipefd[2];   // pipefd[0] read,pipefd[1] write
+	// int		redir_stdin;
+	// int		redir_stdout;
 }   t_px;
 
 //int main(int argc, char **argv, char **envp);
@@ -34,7 +36,8 @@ typedef struct  s_px
 char    *get_cmd_path(char *cmd_arg, t_px *px);
 char    **split_cmd(char *whole_cmd);
 
-void    error_exit(const char *str);
+void    error_exit(const char *str, int error_code);
 void    free_arr(char **str);
+void    close_everything(t_px *px, char **cmd_args, char *cmd_path);
 
 #endif

@@ -14,10 +14,10 @@ RM := rm -f
 all: $(LIBFT) $(NAME)
 
 %.o: %.c
-		@$(CC) $(CFLAGS) -c $^ -o $@
+		$(CC) $(CFLAGS) -c $^ -o $@
 
 $(NAME): $(OBJ) 
-		@$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
+		$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
 
 $(LIBFT): 
 		make -C	$(LIBFT_PATH)
