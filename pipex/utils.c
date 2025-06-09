@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
+/*   By: debian <debian@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 11:01:04 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/07 18:28:30 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/09 14:12:00 by debian           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,9 @@ void    close_everything(t_px *px, char **cmd_args, char *cmd_path)
 
 void    error_exit(const char *str)
 {
+    ft_putstr_fd("Pipex: ", STDERR_FILENO);
     perror(str);
-    exit(EXIT_FAILURE); //modify
+    exit(EXIT_FAILURE);
 }
 
 // Standard Unix/Linux Exit Codes
@@ -65,11 +66,3 @@ void    error_exit(const char *str)
 //Reserve 127 for "command not found" (matching shell conventions).
 //Use 126 for permission-related failures
 //strerror() converts error codes to human-readable strings
-
-// void    error_exit(char *msg, int exit_code)
-// {
-//     if(errno)
-//     {
-        
-//     }
-// }

@@ -1,33 +1,16 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/02 11:33:35 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/07 20:19:08 by linliu           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-
 #include "pipex.h"
 
-//create pipe before the fork, check them every time call them
-//waitpid to avoid child-process becoming zombie-process
-//exit(EXIT_FAILURE) if there's no reasonable way to continue,it is more readable and portable than exit(1)
-
-static void run_child(t_px *px, char **cmd_args, char *cmd_path, int cmd_index)
+static void run_child(t_px *px, char *cmd_path, char **cmd_args, int index)
 {
-    int redir_stdin;
-    int redir_strout;
+    int     redir_stdin;
+    int     redir_strout;
     
-    if(cmd_index == 2)
+    if(index == 1)
     {
         redir_stdin = px->filefd[0];
         redir_strout = px->pipefd[1];
     }
-    if(cmd_index == 3)
+    if(index == 4)
     {
         redir_stdin = px->pipefd[0];
         redir_strout = px->filefd[1];
@@ -38,40 +21,68 @@ static void run_child(t_px *px, char **cmd_args, char *cmd_path, int cmd_index)
     execve(cmd_path, cmd_args, px->envp);
     free_arr(cmd_args);
     free(cmd_path);
-    error_exit("pipex: execve");
+    error_exit("execve");
 }
 
-static int  child_process(t_px *px, int cmd_index)
+static int  open_file(t_px *px, int index)
 {
-    pid_t pid;
+    int filefd;
+    char *filename;
+
+    filename = px->argv[index];
+    if (index == 1)
+    {
+        filefd = open(filename, O_RDONLY);
+        if (filefd == -1)
+        {
+            close_everything(px, 0, 0); //??
+            error_exit(filename); //do i need to close sth?
+        }
+    }
+    if (index == 4)
+    {
+        filefd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0664);
+        if (filefd == -1)
+        {
+            close_everything(px, 0, 0);
+            error_exit(filename);
+        }
+    }
+    return (filefd);
+}
+static void handle_child(t_px *px, int index)
+{
     char **cmd_args;
     char *cmd_path;
 
-    cmd_args = split_cmd(px->argv[cmd_index]);
-    if(!cmd_args)
+    if (index == 1)
+    {
+        px->filefd[0] = open_file(px, index);
+        cmd_args = split_cmd(px->argv[index + 1]);
+    }
+    if (index == 4)
+    {
+        px->filefd[1] = open_file(px, index);
+        cmd_args = split_cmd(px->argv[index - 1]);
+    }
+    cmd_path = find_pass_cmd(px, cmd_args);
+    run_child(px, cmd_path, cmd_args, index);
+}
+
+static int  child_process(t_px *px, int index)
+{
+    pid_t pid;
+
+    pid = fork();
+    if (pid < 0)
     {
         close_everything(px, 0, 0);
-        ft_putstr_fd("Pipex: split_cmd failed\n", STDERR_FILENO); //don't need to free， cause i free everything in ft_split if fail
-        exit(EXIT_FAILURE);
+        error_exit("fork failed");
     }
-    cmd_path = get_cmd_path(cmd_args[0], px);
-    if (!cmd_path)
+    if (pid == 0)
     {
-        ft_putstr_fd("Pipex: ", STDERR_FILENO);
-        ft_putstr_fd(cmd_args[0], STDERR_FILENO);
-        ft_putstr_fd(": command not found\n", STDERR_FILENO);
-        close_everything(px, cmd_args, 0);
-        exit(127);
+        handle_child(px, index);
     }
-    pid = fork();
-    if(pid < 0) //pid=0 child process, pid>0 parent process, pid<0 failed
-     {
-        close_everything(px, cmd_args, cmd_path);
-        error_exit("Pipex: fork failed");
-     }
-     if (pid == 0)
-        run_child(px, cmd_args, cmd_path, cmd_index);
-    close_everything(&px, cmd_args, cmd_path);
     return (pid);
 }
 
@@ -79,43 +90,25 @@ int main(int argc, char **argv, char **envp)
 {
     t_px    px;
     pid_t   pid[2];
-    int     status;
+    int     status[2];
     
     if(argc != 5)
     {
-        ft_putstr_fd("Usage: ./pipex infile cmd1 cmd2 outfile", STDIN_FILENO);
+        ft_putstr_fd("Usage: ./pipex infile cmd1 cmd2 outfile\n", STDIN_FILENO);
         exit(EXIT_FAILURE);
     }
     px.argv = argv;
     px.envp = envp;
-    px.filefd[0] = open(argv[1], O_RDONLY);
-    
-    //move this part to child (open fail,one success?, one fail?)-------------
-    if (px.filefd[0] < 0 )//???
-        error_exit("Pipex: open file");
-    px.filefd[1] = open(argv[4], O_CREAT | O_WRONLY | O_TRUNC, 0664);
-    if (px.filefd[1] < 0 )
-    {
-        close(px.filefd[0]);
-        error_exit("Pipex: open file");
-    }
-    //-----------------------------------------------
-    
+    px.filefd[0] = -1;
+    px.filefd[1] = -1;
     if(pipe(px.pipefd) < 0) // ==0 success, -1 fail
-    {
-        //close_everything(&px, 0, 0);
-        close(px.filefd[0]);
-        close(px.filefd[1]);
-        error_exit("Pipex: pipe failed");
-    }
-    pid[0] = child_process(&px, 2);
-    pid[1] = child_process(&px, 3);
-    
-    //---------------------------------------
-    waitpid(pid[0], &status, 0);//??
-    waitpid(pid[1], &status, 0); 
-    if (WIFEXITED(status))
-		return (WEXITSTATUS(status));//modify
+        error_exit("pipe failed");
+    pid[0] = child_process(&px, 1);
+    pid[1] = child_process(&px, 4);
+    close_everything(&px, 0, 0);
+    waitpid(pid[0], &status[0], 0);//??
+    waitpid(pid[1], &status[1], 0); 
+    if (WIFEXITED(status[1]))
+		return (WEXITSTATUS(status[1]));//modify
 	return (EXIT_FAILURE);
-    //----------------------------------------
 }

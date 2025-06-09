@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   path.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lin <lin@student.42.fr>                    +#+  +:+       +#+        */
+/*   By: debian <debian@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 10:59:45 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/07 17:08:52 by lin              ###   ########.fr       */
+/*   Updated: 2025/06/09 13:16:07 by debian           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,19 +56,7 @@ static char    *match_cmd_in_path(char **paths, char *cmd_arg)
     return (NULL);
 }
 
-char **split_cmd(char *whole_cmd)
-{
-    char **cmd_args;
-
-    if(!whole_cmd)
-        return (NULL);
-    cmd_args = ft_split(whole_cmd, ' ');
-    if(!cmd_args)
-        return (NULL);
-    return (cmd_args);
-}
-
-char    *get_cmd_path(char *cmd_arg, t_px *px)
+static char    *get_cmd_path(char *cmd_arg, t_px *px)
 {
     char **paths;
     char *com_path;
@@ -83,4 +71,32 @@ char    *get_cmd_path(char *cmd_arg, t_px *px)
     com_path = match_cmd_in_path(paths, cmd_arg);
     free_arr(paths);
     return (com_path);
+}
+
+char **split_cmd(char *whole_cmd)
+{
+    char **cmd_args;
+
+    if(!whole_cmd)
+        return (NULL);
+    cmd_args = ft_split(whole_cmd, ' ');
+    if(!cmd_args)
+        return (NULL);
+    return (cmd_args);
+}
+
+char *find_pass_cmd(t_px *px, char **cmd_args)
+{
+    char *path;
+
+    path = get_cmd_path(cmd_args[0], px);
+    if(!path)
+    {
+        ft_putstr_fd("Pipex: ", STDERR_FILENO);
+        ft_putstr_fd(cmd_args[0], STDERR_FILENO);
+        ft_putstr_fd(": command not found\n", STDERR_FILENO);
+        close_everything(px, cmd_args, 0);
+        exit(127);
+    }
+    return (path);
 }
