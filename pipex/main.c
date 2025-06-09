@@ -50,6 +50,7 @@ static int  open_file(t_px *px, int index)
     }
     return (filefd);
 }
+
 static void handle_child(t_px *px, int index)
 {
     char **cmd_args;
