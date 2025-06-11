@@ -18,7 +18,6 @@
 # include <stdlib.h> //exit（）malloc free
 # include <sys/wait.h> // waitpid
 # include <stdio.h> //perror
-#include <sys/errno.h> //errno
 # include "./libft/libft.h"
 
 typedef struct  s_px
