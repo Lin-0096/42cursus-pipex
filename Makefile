@@ -2,27 +2,27 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror
 
 NAME := pipex
-SRCS := main.c path.c utils.c
+SRCS := src/main.c src/path.c src/utils.c
 OBJ := $(SRCS:%.c=%.o)
 
-LIBFT_PATH := ./libft/
-LIBFT  := $(LIBFT_PATH)libft.a
-
+LIBFT_PATH := libft
+LIBFT := $(LIBFT_PATH)/libft.a
+INCLUDE := -I include -I libft
 
 RM := rm -f
 
 all: $(LIBFT) $(NAME)
 
 %.o: %.c
-		$(CC) $(CFLAGS) -c $^ -o $@
+		$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
-$(NAME): $(OBJ) 
+$(NAME): $(OBJ) $(LIBFT)
 		$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
 
-$(LIBFT): 
+$(LIBFT):
 		make -C	$(LIBFT_PATH)
 clean:
-	@$(RM) $(OBJ) 
+	@$(RM) $(OBJ)
 	@ make clean -C $(LIBFT_PATH)
 
 fclean: clean
@@ -30,6 +30,5 @@ fclean: clean
 	@ make fclean -C $(LIBFT_PATH)
 
 re: fclean all
-	
 
 .PHONY: all clean fclean re

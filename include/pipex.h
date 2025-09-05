@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: debian <debian@student.42.fr>              +#+  +:+       +#+        */
+/*   By: linliu <linliu@student.hive.fi>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 11:00:26 by linliu            #+#    #+#             */
-/*   Updated: 2025/06/09 13:42:23 by debian           ###   ########.fr       */
+/*   Updated: 2025/09/05 14:59:14 by linliu           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 # include <stdlib.h> //exit（）malloc free
 # include <sys/wait.h> // waitpid
 # include <stdio.h> //perror
-# include "./libft/libft.h"
+# include "libft.h"
 
 typedef struct  s_px
 {
