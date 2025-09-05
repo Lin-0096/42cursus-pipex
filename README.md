@@ -14,13 +14,6 @@ The goal is to implement a program that mimics the following shell command:
 ```bash
 < infile cmd1 | cmd2 > outfile
 ```
-
-<div align="center">
-	<picture>
-		<img src="https://raw.githubusercontent.com/github/explore/main/topics/c/c.png" alt="C programming" height="80">
-	</picture>
-</div>
-
 ---
 
 #### Core topics:
